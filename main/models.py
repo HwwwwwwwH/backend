@@ -63,3 +63,12 @@ class ToothFile(models.Model):
     position_type = models.IntegerField(validators=[MinValueValidator(1),
                                                     MaxValueValidator(7)])
     file = models.FileField(upload_to=tooth_direction_path)
+
+
+# quaternion: [x, y, z], angle
+class ToothPosition(models.Model):
+    tooth = models.ForeignKey(ToothFile, on_delete=models.CASCADE)
+    x = models.FloatField()
+    y = models.FloatField()
+    z = models.FloatField()
+    angle = models.FloatField()
