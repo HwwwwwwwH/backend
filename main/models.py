@@ -7,18 +7,34 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 def jaw_direction_path(instance, filename: str):
     case = instance.case
     patient = instance.patient
-    return 'jaws/{0}/{1}/{2}'.format(patient.id, case.case_id, filename)
+    position_type = instance.position_type
+    process_type = instance.process_type
+    ext = filename.split('.')[-1]
+    file_name = process_type + '_' + position_type + '.' + ext
+    return '{0}/{1}/jaws/{2}'.format(patient.id, case.case_count, file_name)
 
 
 def tooth_direction_path(instance, filename: str):
     case = instance.case
     patient = instance.patient
-    return 'teeth/{0}/{1}/{2}'.format(patient.id, case.case_id, filename)
+    ext = filename.split('.')[-1]
+    file_name = '{0}{1}'.format(instance.quadrant_type, instance.position_type) + '.' + ext
+    return '{0}/{1}/teeth/{2}'.format(patient.id, case.case_count, file_name)
+
+
+def dicom_direction_path(instance, filename: str):
+    case = instance.case
+    patient = instance.patient
+    return '{0}/{1}/dicoms/{2}'.format(patient.id, case.case_count, filename)
 
 
 def get_uid():
     uid = str(uuid4())
     return ''.join(uid.split('-'))
+
+
+def get_case_count(patient):
+    return len(Case.objects.filter(patient=patient)) + 1
 
 
 # Create your models here.
@@ -36,7 +52,7 @@ class Patient(models.Model):
 
 class Case(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    case_id = models.IntegerField()
+    case_count = models.IntegerField()
 
 
 class JawFile(models.Model):
@@ -61,8 +77,15 @@ class ToothFile(models.Model):
     quadrant_type = models.IntegerField(validators=[MinValueValidator(1),
                                                     MaxValueValidator(4)])
     position_type = models.IntegerField(validators=[MinValueValidator(1),
-                                                    MaxValueValidator(7)])
+                                                    MaxValueValidator(8)]) # 8: wisdom tooth
     file = models.FileField(upload_to=tooth_direction_path)
+    isExtracted = models.BooleanField(default=False)
+
+
+class DicomFile(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    file = models.FileField(upload_to=dicom_direction_path)
 
 
 # quaternion: [x, y, z], angle
