@@ -2,6 +2,7 @@ from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 from uuid import uuid4
 from django.core.validators import MinValueValidator, MaxValueValidator
+from main.storage import FileStorage
 
 
 def jaw_direction_path(instance, filename: str):
@@ -68,7 +69,7 @@ class JawFile(models.Model):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     position_type = models.CharField(max_length=20, choices=POSITION_TYPE)
     process_type = models.CharField(max_length=20, choices=PROCESS_TYPE)
-    file = models.FileField(upload_to=jaw_direction_path)
+    file = models.FileField(upload_to=jaw_direction_path, storage=FileStorage())
 
 
 class ToothFile(models.Model):
@@ -78,14 +79,14 @@ class ToothFile(models.Model):
                                                     MaxValueValidator(4)])
     position_type = models.IntegerField(validators=[MinValueValidator(1),
                                                     MaxValueValidator(8)]) # 8: wisdom tooth
-    file = models.FileField(upload_to=tooth_direction_path)
+    file = models.FileField(upload_to=tooth_direction_path, storage=FileStorage())
     isExtracted = models.BooleanField(default=False)
 
 
 class DicomFile(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    file = models.FileField(upload_to=dicom_direction_path)
+    file = models.FileField(upload_to=dicom_direction_path, storage=FileStorage())
 
 
 # quaternion: [x, y, z], angle
